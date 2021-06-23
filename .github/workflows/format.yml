@@ -12,8 +12,10 @@ jobs:
         steps:
             - uses: actions/checkout@v1
 
+            # @TODO: remove `--ignore-platform-reqs` once the `bitwasp/bitcoin` dependency is updated
+            # to accept php8
             - name: Install
-              run: composer install --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist --optimize-autoloader
+              run: composer install --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist --optimize-autoloader --ignore-platform-reqs
 
             - name: Run php-cs-fixer
               run: ./vendor/bin/php-cs-fixer fix

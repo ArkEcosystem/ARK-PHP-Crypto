@@ -1,25 +1,38 @@
 name: Test
 
 on:
-    push:
-        branches:
-            - "master"
-            - "develop"
-    pull_request:
-        types: [ready_for_review, synchronize, opened]
+  push:
+    branches:
+      - "master"
+      - "develop"
+  pull_request:
+    types: [ready_for_review, synchronize, opened]
 
 jobs:
-    unit:
-        runs-on: ubuntu-latest
+  unit:
+    runs-on: ubuntu-latest
 
-        steps:
-            - uses: actions/checkout@v1
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-            - name: Install
-              run: composer update --no-interaction --no-suggest
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.0"
+          extensions: mbstring, dom, fileinfo, intl, gd, imagick, bcmath, soap, zip, sqlite, pcov
+          coverage: pcov
 
-            - name: Unit tests
-              run: composer test
+      - name: Cache dependencies
+        uses: actions/cache@v1
+        with:
+          path: ~/.composer/cache/files
+          key: dependencies-composer-${{ hashFiles('composer.json') }}
 
-            - name: Codecov
-              run: bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}
+      # @TODO: remove `--ignore-platform-reqs` once the `bitwasp/bitcoin` dependency is updated
+      # to accept php8
+      - name: Install Composer dependencies
+        run: composer install --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist --optimize-autoloader --ignore-platform-reqs
+
+      - name: Run Tests
+        run: composer test
